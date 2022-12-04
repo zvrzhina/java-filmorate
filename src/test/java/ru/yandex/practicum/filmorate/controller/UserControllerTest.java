@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,12 +17,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.utils.LocalDateDeserializer;
+import ru.yandex.practicum.filmorate.utils.gson.LocalDateDeserializer;
+import ru.yandex.practicum.filmorate.utils.gson.LocalDateSerializer;
 
 import java.lang.reflect.Type;
 import java.time.LocalDate;
 import java.time.Month;
-import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,42 +43,46 @@ public class UserControllerTest {
     public void setUp() {
         gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(LocalDate.class, new LocalDateDeserializer());
+        gsonBuilder.registerTypeAdapter(LocalDate.class, new LocalDateSerializer());
         gson = gsonBuilder.setPrettyPrinting().create();
     }
 
+    @AfterEach
+    public void afterEach() {
+        User.resetIdCounter();
+    }
+
     @Test
-    void shouldCreateFilm() throws Exception {
-        User expected = User.builder()
-                .id(1)
-                .email("alina@yandex.ru")
-                .login("Alina")
-                .name("Alina Z")
-                .birthday(LocalDate.of(1990, Month.OCTOBER, 10)).build();
+    void shouldCreateUser() throws Exception {
+        User expected = new User("alina@yandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json = gson.toJson(expected);
 
         mockMvc.perform(
                         MockMvcRequestBuilders.post("/users")
                                 .contentType(MediaType.APPLICATION_JSON)
-                                .content("{ \"id\": 1, \"email\": \"alina@yandex.ru\", \"login\": \"Alina\", \"name\": \"Alina Z\", \"birthday\": \"" + LocalDate.of(1990, Month.OCTOBER, 10) + "\"}")
+                                .content(json)
                                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users")).andReturn();
         String content = result.getResponse().getContentAsString();
-        Type mapType = new TypeToken<Map<Integer, User>>() {
+        Type listType = new TypeToken<List<User>>() {
         }.getType();
 
-        Map<Integer, User> actual = gson.fromJson(content, mapType);
-        Assertions.assertEquals(expected, actual.get(1));
+        List<User> actual = gson.fromJson(content, listType);
+        Assertions.assertEquals(expected, actual.get(0));
     }
 
     @Test
     void emailCantBeEmpty() throws Exception {
+        User expected = new User("", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json = gson.toJson(expected);
         try {
             mockMvc.perform(
                             MockMvcRequestBuilders.post("/users")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content("{ \"id\": 1, \"email\": \"\", \"login\": \"Alina\", \"name\": \"Alina Z\", \"birthday\": \"" + LocalDate.of(1990, Month.OCTOBER, 10) + "\"}")
+                                    .content(json)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andReturn();
@@ -93,11 +99,13 @@ public class UserControllerTest {
 
     @Test
     void addressSignCantAbsent() throws Exception {
+        User expected = new User("alinayandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json = gson.toJson(expected);
         try {
             mockMvc.perform(
                             MockMvcRequestBuilders.post("/users")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content("{ \"id\": 1, \"email\": \"alinayandex.ru\", \"login\": \"Alina\", \"name\": \"Alina Z\", \"birthday\": \"" + LocalDate.of(1990, Month.OCTOBER, 10) + "\"}")
+                                    .content(json)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andReturn();
@@ -114,11 +122,13 @@ public class UserControllerTest {
 
     @Test
     void loginCantBeEmpty() throws Exception {
+        User expected = new User("alina@yandex.ru", "", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json = gson.toJson(expected);
         try {
             mockMvc.perform(
                             MockMvcRequestBuilders.post("/users")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content("{ \"id\": 1, \"email\": \"alina@yandex.ru\", \"login\": \"\", \"name\": \"Alina Z\", \"birthday\": \"" + LocalDate.of(1990, Month.OCTOBER, 10) + "\"}")
+                                    .content(json)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andReturn();
@@ -135,11 +145,13 @@ public class UserControllerTest {
 
     @Test
     void loginShouldBeWithoutSpaces() throws Exception {
+        User expected = new User("alina@yandex.ru", "Alina Z", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json = gson.toJson(expected);
         try {
             mockMvc.perform(
                             MockMvcRequestBuilders.post("/users")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content("{ \"id\": 1, \"email\": \"alina@yandex.ru\", \"login\": \"Alina Z\", \"name\": \"Alina Z\", \"birthday\": \"" + LocalDate.of(1990, Month.OCTOBER, 10) + "\"}")
+                                    .content(json)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andReturn();
@@ -157,11 +169,13 @@ public class UserControllerTest {
     @Test
     void birthdayCantBeInTheFuture() throws Exception {
         LocalDate currentDate = LocalDate.now();
+        User expected = new User("alina@yandex.ru", "Alina", "Alina Z", currentDate.plusDays(1));
+        String json = gson.toJson(expected);
         try {
             mockMvc.perform(
                             MockMvcRequestBuilders.post("/users")
                                     .contentType(MediaType.APPLICATION_JSON)
-                                    .content("{ \"id\": 1, \"email\": \"alina@yandex.ru\", \"login\": \"Alina\", \"name\": \"Alina Z\", \"birthday\": \"" + currentDate.plusDays(1) + "\"}")
+                                    .content(json)
                                     .accept(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andReturn();

@@ -1,27 +1,47 @@
 package ru.yandex.practicum.filmorate.model;
 
-import lombok.Builder;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.Month;
 
 @Data
-@Builder
 public class Film {
+    static int idCounter = 1;
     private int id;
     private String name;
     private String description;
     private LocalDate releaseDate;
-    private Duration duration;
+    private long duration;
 
-    public static void main(String[] args) {
-        Film film = Film.builder()
-                .id(1)
-                .name("Kill Bill 1")
-                .description("Kill Bill is the story of one retired assassin's revenge against a man who tried to kill her while she was pregnant years prior.")
-                .releaseDate(LocalDate.of(2003, Month.OCTOBER, 10))
-                .duration(Duration.ofMinutes(111)).build();
+    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+    public Film(@JsonProperty("name") String name, @JsonProperty("description") String description, @JsonProperty("releaseDate") LocalDate releaseDate, @JsonProperty("duration") long duration) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.id = idCounter++;
+    }
+
+    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+    public Film(@JsonProperty("id") int id, String name, String description, LocalDate releaseDate, long duration) {
+        if (id == 0) {
+            this.id = idCounter++; // user didn't pass id in json
+        } else {
+            this.id = id;
+        }
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+    }
+
+    public static void resetIdCounter() {
+        idCounter = 1;
+    }
+
+    public static void decrementIdCounter() {
+        --idCounter;
     }
 }
