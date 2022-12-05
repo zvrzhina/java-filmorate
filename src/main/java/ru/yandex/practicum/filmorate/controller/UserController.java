@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -27,7 +28,10 @@ public class UserController {
     }
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
+    public User create(@Valid @RequestBody User user, Errors errors) {
+        if (errors.hasErrors()) {
+            handleSpringValidation(errors);
+        }
         validate(user);
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
@@ -39,7 +43,10 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User user) {
+    public User update(@Valid @RequestBody User user, Errors errors) {
+        if (errors.hasErrors()) {
+            handleSpringValidation(errors);
+        }
         for (User u : users.values()) {
             if (u.getId() == user.getId()) {
                 validate(user);
@@ -56,10 +63,6 @@ public class UserController {
     }
 
     private static void validate(User user) {
-        if (user.getEmail() == null || user.getEmail().isBlank() || !user.getEmail().contains("@")) {
-            User.decrementIdCounter();
-            throw new ValidationException("Некоректный адрес электронной почты. Проверьте введенное значение.");
-        }
         if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
             User.decrementIdCounter();
             throw new ValidationException("Логин не может быть пустым или содержать пробелы");
@@ -68,6 +71,11 @@ public class UserController {
             User.decrementIdCounter();
             throw new ValidationException("Дата рождения не может быть в будущем");
         }
+    }
+
+    private static void handleSpringValidation(Errors errors) {
+        User.decrementIdCounter();
+        throw new ValidationException("Произошла ошибка - " + errors.getAllErrors());
     }
 
 }

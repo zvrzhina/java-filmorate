@@ -2,6 +2,7 @@ package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
@@ -27,7 +28,10 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film create(@Valid @RequestBody Film film) {
+    public Film create(@Valid @RequestBody Film film, Errors errors) {
+        if (errors.hasErrors()) {
+            handleSpringValidation(errors);
+        }
         validate(film);
         films.put(film.getId(), film);
         log.info("Добавлен фильм: {}", film);
@@ -35,7 +39,10 @@ public class FilmController {
     }
 
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
+    public Film update(@Valid @RequestBody Film film, Errors errors) {
+        if (errors.hasErrors()) {
+            handleSpringValidation(errors);
+        }
         for (Film f : films.values()) {
             if (f.getId() == film.getId()) {
                 validate(film);
@@ -64,5 +71,10 @@ public class FilmController {
             Film.decrementIdCounter();
             throw new ValidationException("Продолжительность фильма должна быть положительной.");
         }
+    }
+
+    private static void handleSpringValidation(Errors errors) {
+        Film.decrementIdCounter();
+        throw new ValidationException("Произошла ошибка - " + errors.getAllErrors());
     }
 }

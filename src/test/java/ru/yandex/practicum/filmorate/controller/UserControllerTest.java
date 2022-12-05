@@ -116,7 +116,6 @@ public class UserControllerTest {
                             () -> {
                                 throw e.getCause();
                             });
-            assert (exception.getMessage()).equals("Некоректный адрес электронной почты. Проверьте введенное значение.");
         }
     }
 
