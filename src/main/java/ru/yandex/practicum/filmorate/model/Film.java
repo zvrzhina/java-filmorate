@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Data
 public class Film {
     static int idCounter = 1;
     private int id;
+    @NotNull
     private String name;
     private String description;
     private LocalDate releaseDate;

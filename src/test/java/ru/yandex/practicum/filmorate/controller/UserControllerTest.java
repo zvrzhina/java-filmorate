@@ -107,7 +107,7 @@ public class UserControllerTest {
                                     .contentType(MediaType.APPLICATION_JSON)
                                     .content(json)
                                     .accept(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isOk())
+                    .andExpect(status().isBadRequest())
                     .andReturn();
         } catch (NestedServletException e) {
             Exception exception =
