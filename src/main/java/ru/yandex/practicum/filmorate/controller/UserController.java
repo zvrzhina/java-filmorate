@@ -4,13 +4,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @Slf4j
@@ -18,10 +21,12 @@ import java.util.List;
 public class UserController {
 
     private final UserStorage userStorage;
+    private final ru.yandex.practicum.filmorate.service.UserService userService;
 
     @Autowired
-    public UserController(UserStorage userStorage) {
+    public UserController(InMemoryUserStorage userStorage, ru.yandex.practicum.filmorate.service.UserService userService) {
         this.userStorage = userStorage;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -44,6 +49,35 @@ public class UserController {
             handleSpringValidation(errors);
         }
         return userStorage.update(user);
+    }
+
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable("id") Integer id) {
+        User user = userService.getUser(id);
+        if (user == null) {
+            throw new UserNotFoundException(id);
+        }
+        return user;
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        userService.addFriend(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        userService.removeFriend(userId, friendId);
+    }
+
+    @GetMapping("{id}/friends")
+    public List<User> getFriends(@PathVariable("id") Integer userId) {
+        return userService.getFriends(userId);
+    }
+
+    @GetMapping("{id}/friends/common/{otherId}")
+    public Set<User> getCommonFriends(@PathVariable("id") Integer userId, @PathVariable("otherId") Integer friendId) {
+        return userService.getCommonFriends(userId, friendId);
     }
 
     private static void handleSpringValidation(Errors errors) {

@@ -4,9 +4,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
+import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -18,10 +21,12 @@ import java.util.List;
 public class FilmController {
 
     private final FilmStorage filmStorage;
+    private final FilmService filmService;
 
     @Autowired
-    public FilmController(FilmStorage filmStorage) {
+    public FilmController(InMemoryFilmStorage filmStorage, FilmService filmService) {
         this.filmStorage = filmStorage;
+        this.filmService = filmService;
     }
 
     @GetMapping
@@ -44,6 +49,30 @@ public class FilmController {
             handleSpringValidation(errors);
         }
         return filmStorage.update(film);
+    }
+
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable("id") Integer id) {
+        Film film = filmService.getFilm(id);
+        if (film == null) {
+            throw new FilmNotFoundException(id);
+        }
+        return filmService.getFilm(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void setLike(@PathVariable("id") Integer filmId, @PathVariable("userId") Integer userId) {
+        filmService.setLike(filmId, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable("id") Integer filmId, @PathVariable("userId") Integer userId) {
+        filmService.deleteLike(filmId, userId);
+    }
+
+    @GetMapping(value = {"/popular", "/popular?count={count}"})
+    public List<Film> getPopular(@RequestParam(name = "count", required = false) Integer count) {
+        return filmService.getPopular(count);
     }
 
     private static void handleSpringValidation(Errors errors) {
