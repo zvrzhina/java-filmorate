@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.ErrorResponse;
 
 @Slf4j
 @RestControllerAdvice("ru.yandex.practicum.filmorate.controller")
@@ -14,29 +15,36 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public void handleEntityNotFoundException(final EntityNotFoundException e) {
+    public ErrorResponse handleEntityNotFoundException(final EntityNotFoundException e) {
+        String msg;
         switch (e.getEntity()) {
             case FILM:
-                log.info(String.format("Фильм c id \"%s\" не найден.", e.getEntityId()));
-                break;
+                msg = String.format("Фильм c id \"%s\" не найден.", e.getEntityId());
+                log.info(msg);
+                return new ErrorResponse(msg);
             case LIKE:
-                log.info(String.format("Лайк c id пользователя \"%s\" не найден.", e.getEntityId()));
-                break;
+                msg = String.format("Лайк c id пользователя \"%s\" не найден.", e.getEntityId());
+                log.info(msg);
+                return new ErrorResponse(msg);
             case USER:
-                log.info(String.format("Пользователь c id \"%s\" не найден.", e.getEntity()));
-                break;
+                msg = String.format("Пользователь c id \"%s\" не найден.", e.getEntity());
+                log.info(msg);
+                return new ErrorResponse(msg);
             case FRIEND:
-                log.info(String.format("Друг c id \"%s\" не найден", e.getEntityId()));
-                break;
+                msg = String.format("Друг c id \"%s\" не найден", e.getEntityId());
+                log.info(msg);
+                return new ErrorResponse(msg);
             default:
-                log.info(String.format("Сущность c id \"%s\" не найдена", e.getEntityId()));
-                break;
+                msg = String.format("Сущность c id \"%s\" не найдена", e.getEntityId());
+                log.info(msg);
+                return new ErrorResponse(msg);
         }
     }
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public void handleValidationException(final ValidationException e) {
+    public ErrorResponse handleValidationException(final ValidationException e) {
         log.info(e.getMessage());
+        return new ErrorResponse(e.getMessage());
     }
 }
