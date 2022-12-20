@@ -3,8 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FriendNotFoundException;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -36,9 +36,9 @@ public class UserService {
         User user = getUser(userId);
         User friend = getUser(friendId);
         if (user == null) {
-            throw new UserNotFoundException(userId);
+            throw new EntityNotFoundException(userId, Entity.USER);
         } else if (friend == null) {
-            throw new UserNotFoundException(friendId);
+            throw new EntityNotFoundException(friendId, Entity.USER);
         } else {
             user.addFriend(friendId);
             friend.addFriend(userId);
@@ -50,16 +50,16 @@ public class UserService {
         User user = getUser(userId);
         User friend = getUser(friendId);
         if (user == null) {
-            throw new UserNotFoundException(userId);
+            throw new EntityNotFoundException(userId, Entity.USER);
         } else if (friend == null) {
-            throw new UserNotFoundException(friendId);
+            throw new EntityNotFoundException(friendId, Entity.USER);
         } else {
             if (user.getFriends().contains(friendId)) {
                 user.removeFriend(friendId);
                 friend.removeFriend(userId);
                 log.info("Пользователь с id = " + userId + " удалил друга с id = " + friendId);
             } else {
-                throw new FriendNotFoundException(userId, friendId);
+                throw new EntityNotFoundException(userId, Entity.USER);
             }
         }
     }
@@ -67,7 +67,7 @@ public class UserService {
     public List<User> getFriends(Integer userId) {
         User user = getUser(userId);
         if (user == null) {
-            throw new UserNotFoundException(userId);
+            throw new EntityNotFoundException(userId, Entity.USER);
         } else {
             List<User> friends = new ArrayList<>();
             for (Integer id : user.getFriends()) {
@@ -82,9 +82,9 @@ public class UserService {
         User user = getUser(userId);
         User friend = getUser(friendId);
         if (user == null) {
-            throw new UserNotFoundException(userId);
+            throw new EntityNotFoundException(userId, Entity.USER);
         } else if (friend == null) {
-            throw new UserNotFoundException(friendId);
+            throw new EntityNotFoundException(friendId, Entity.USER);
         } else {
             List<User> firstUserFriends = getFriends(userId);
             List<User> secondUserFriends = getFriends(friendId);

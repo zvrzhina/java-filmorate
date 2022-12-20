@@ -4,12 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -19,20 +18,17 @@ import java.util.List;
 @Slf4j
 @RequestMapping("/films")
 public class FilmController {
-
-    private final FilmStorage filmStorage;
     private final FilmService filmService;
 
     @Autowired
-    public FilmController(InMemoryFilmStorage filmStorage, FilmService filmService) {
-        this.filmStorage = filmStorage;
+    public FilmController(FilmService filmService) {
         this.filmService = filmService;
     }
 
     @GetMapping
     public List<Film> getAll() {
-        log.info("Текущее количество фильмов: {}", filmStorage.getAll().size());
-        return new ArrayList<>(filmStorage.getAll());
+        log.info("Текущее количество фильмов: {}", filmService.getAll().size());
+        return new ArrayList<>(filmService.getAll());
     }
 
     @PostMapping
@@ -40,7 +36,7 @@ public class FilmController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        return filmStorage.create(film);
+        return filmService.create(film);
     }
 
     @PutMapping
@@ -48,14 +44,14 @@ public class FilmController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        return filmStorage.update(film);
+        return filmService.update(film);
     }
 
     @GetMapping("/{id}")
     public Film getFilm(@PathVariable("id") Integer id) {
         Film film = filmService.getFilm(id);
         if (film == null) {
-            throw new FilmNotFoundException(id);
+            throw new EntityNotFoundException(id, Entity.FILM);
         }
         return filmService.getFilm(id);
     }

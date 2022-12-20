@@ -192,4 +192,122 @@ public class UserControllerTest {
             assert (exception.getMessage()).equals("Дата рождения не может быть в будущем");
         }
     }
+
+    @Test
+    void shouldAddFriend() throws Exception {
+        User user1 = new User("alina@yandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json1 = gson.toJson(user1);
+
+        User user2 = new User("alina2@yandex.ru", "Alina2", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json2 = gson.toJson(user2);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json1)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json2)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/users/1/friends/2")).andReturn();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/1/friends")).andReturn();
+        String content = result.getResponse().getContentAsString();
+        Type listType = new TypeToken<List<User>>() {
+        }.getType();
+
+        List<User> actual = gson.fromJson(content, listType);
+        Assertions.assertEquals(user2.getId(), actual.get(0).getId());
+    }
+
+    @Test
+    void shouldRemoveFriend() throws Exception {
+        User user1 = new User("alina@yandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json1 = gson.toJson(user1);
+
+        User user2 = new User("alina2@yandex.ru", "Alina2", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json2 = gson.toJson(user2);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json1)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json2)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/users/1/friends/2")).andReturn();
+        mockMvc.perform(MockMvcRequestBuilders.delete("/users/1/friends/2")).andReturn();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/1/friends")).andReturn();
+        String content = result.getResponse().getContentAsString();
+        Type listType = new TypeToken<List<User>>() {
+        }.getType();
+
+        List<User> actual = gson.fromJson(content, listType);
+        Assertions.assertEquals(0, actual.size());
+    }
+
+    @Test
+    void shouldFindCommonFriend() throws Exception {
+        User user1 = new User("alina@yandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json1 = gson.toJson(user1);
+
+        User user2 = new User("alina2@yandex.ru", "Alina2", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json2 = gson.toJson(user2);
+
+        User user3 = new User("alina3@yandex.ru", "Alina3", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String json3 = gson.toJson(user3);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json1)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json2)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(json3)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/users/1/friends/3")).andReturn();
+        mockMvc.perform(MockMvcRequestBuilders.put("/users/2/friends/3")).andReturn();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/1/friends/common/2")).andReturn();
+        String content = result.getResponse().getContentAsString();
+        Type listType = new TypeToken<List<User>>() {
+        }.getType();
+
+        List<User> actual = gson.fromJson(content, listType);
+        Assertions.assertEquals(user3.getId(), actual.get(0).getId());
+    }
 }

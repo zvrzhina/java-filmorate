@@ -3,9 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.exception.FilmNotFoundException;
-import ru.yandex.practicum.filmorate.exception.LikeNotFoundException;
-import ru.yandex.practicum.filmorate.exception.UserNotFoundException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
@@ -35,13 +34,25 @@ public class FilmService {
                 .orElse(null);
     }
 
+    public List<Film> getAll() {
+        return filmStorage.getAll();
+    }
+
+    public Film create(Film film) {
+        return filmStorage.create(film);
+    }
+
+    public Film update(Film film) {
+        return filmStorage.update(film);
+    }
+
     public void setLike(Integer filmId, Integer userId) {
         User user = userService.getUser(userId);
         Film film = getFilm(filmId);
         if (user == null) {
-            throw new UserNotFoundException(userId);
+            throw new EntityNotFoundException(userId, Entity.USER);
         } else if (film == null) {
-            throw new FilmNotFoundException(filmId);
+            throw new EntityNotFoundException(filmId, Entity.FILM);
         } else {
             film.addLike(userId);
             log.info("Пользователь с id = " + userId + " поставил лайк фильму с id = " + filmId);
@@ -52,15 +63,15 @@ public class FilmService {
         User user = userService.getUser(userId);
         Film film = getFilm(filmId);
         if (user == null) {
-            throw new UserNotFoundException(userId);
+            throw new EntityNotFoundException(userId, Entity.USER);
         } else if (film == null) {
-            throw new FilmNotFoundException(filmId);
+            throw new EntityNotFoundException(filmId, Entity.FILM);
         } else {
             if (film.getLikes().contains(userId)) {
                 film.removeLike(userId);
                 log.info("Пользователь с id = " + userId + " удалил лайк с фильма с id = " + filmId);
             } else {
-                throw new LikeNotFoundException(userId, filmId);
+                throw new EntityNotFoundException(userId, Entity.LIKE);
             }
         }
     }

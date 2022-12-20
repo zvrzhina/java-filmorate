@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
 import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
@@ -189,6 +190,121 @@ public class FilmControllerTest {
                             });
             assert (exception.getMessage()).equals("Продолжительность фильма должна быть положительной.");
         }
+    }
+
+    @Test
+    void shouldSetLike() throws Exception {
+        Film film = new Film("Kill Bill 1", "Kill Bill is the story of one retired assassin's revenge against a man who tried to kill her while she was pregnant years prior.", LocalDate.of(2003, Month.OCTOBER, 10), 6660);
+        String filmJson = gson.toJson(film);
+
+        User user = new User("alina@yandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String userJson = gson.toJson(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/films")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(filmJson)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(userJson)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/films/1/like/1")).andReturn();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/films/1")).andReturn();
+        String content = result.getResponse().getContentAsString();
+
+        Film actual = gson.fromJson(content, Film.class);
+        Assertions.assertEquals(1, actual.getLikesAmount());
+    }
+
+    @Test
+    void shouldDeleteLike() throws Exception {
+        Film film = new Film("Kill Bill 1", "Kill Bill is the story of one retired assassin's revenge against a man who tried to kill her while she was pregnant years prior.", LocalDate.of(2003, Month.OCTOBER, 10), 6660);
+        String filmJson = gson.toJson(film);
+
+        User user = new User("alina@yandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String userJson = gson.toJson(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/films")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(filmJson)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(userJson)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/films/1/like/1")).andReturn();
+        mockMvc.perform(MockMvcRequestBuilders.delete("/films/1/like/1")).andReturn();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/films/1")).andReturn();
+        String content = result.getResponse().getContentAsString();
+
+        Film actual = gson.fromJson(content, Film.class);
+        Assertions.assertEquals(0, actual.getLikesAmount());
+    }
+
+    @Test
+    void shouldGetFirstPopular() throws Exception {
+        Film film1 = new Film("Kill Bill 1", "Kill Bill is the story of one retired assassin's revenge against a man who tried to kill her while she was pregnant years prior.", LocalDate.of(2003, Month.OCTOBER, 10), 6660);
+        String filmJson1 = gson.toJson(film1);
+
+        Film film2 = new Film("Kill Bill 2", "Kill Bill is the story of one retired assassin's revenge against a man who tried to kill her while she was pregnant years prior.", LocalDate.of(2003, Month.OCTOBER, 10), 6660);
+        String filmJson2 = gson.toJson(film2);
+
+        User user = new User("alina@yandex.ru", "Alina", "Alina Z", LocalDate.of(1990, Month.OCTOBER, 10));
+        String userJson = gson.toJson(user);
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/films")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(filmJson1)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/films")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(filmJson2)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(
+                        MockMvcRequestBuilders.post("/users")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(userJson)
+                                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/films/2/like/1")).andReturn();
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/films/popular?count=1")).andReturn();
+        String content = result.getResponse().getContentAsString();
+
+        Type listType = new TypeToken<List<Film>>() {
+        }.getType();
+
+        List<Film> actual = gson.fromJson(content, listType);
+        Assertions.assertEquals(2, actual.get(0).getId());
+        Assertions.assertEquals(1, actual.get(0).getLikesAmount());
     }
 
 }

@@ -1,6 +1,5 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Data
 @NoArgsConstructor
 @Component
 public class InMemoryUserStorage implements UserStorage {
