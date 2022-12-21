@@ -32,6 +32,18 @@ public class UserService {
                 .orElse(null);
     }
 
+    public List<User> getAll() {
+        return userStorage.getAll();
+    }
+
+    public User create(User user) {
+        return userStorage.create(user);
+    }
+
+    public User update(User user) {
+        return userStorage.update(user);
+    }
+
     public void addFriend(Integer userId, Integer friendId) {
         User user = getUser(userId);
         User friend = getUser(friendId);

@@ -8,8 +8,7 @@ import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.ArrayList;
@@ -20,20 +19,17 @@ import java.util.Set;
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
-
-    private final UserStorage userStorage;
-    private final ru.yandex.practicum.filmorate.service.UserService userService;
+    private final UserService userService;
 
     @Autowired
-    public UserController(InMemoryUserStorage userStorage, ru.yandex.practicum.filmorate.service.UserService userService) {
-        this.userStorage = userStorage;
+    public UserController(UserService userService) {
         this.userService = userService;
     }
 
     @GetMapping
     public List<User> getAll() {
-        log.info("Текущее количество пользователей: {}", userStorage.getAll().size());
-        return new ArrayList<>(userStorage.getAll());
+        log.info("Текущее количество пользователей: {}", userService.getAll().size());
+        return new ArrayList<>(userService.getAll());
     }
 
     @PostMapping
@@ -41,7 +37,7 @@ public class UserController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        return userStorage.create(user);
+        return userService.create(user);
     }
 
     @PutMapping
@@ -49,7 +45,7 @@ public class UserController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        return userStorage.update(user);
+        return userService.update(user);
     }
 
     @GetMapping("/{id}")
