@@ -7,6 +7,8 @@ import lombok.Data;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 public class User {
@@ -18,6 +20,7 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
+    private Set<Integer> friends;
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public User(@JsonProperty("email") String email, @JsonProperty("login") String login, @JsonProperty("name") String name, @JsonProperty("birthday") LocalDate birthday) {
@@ -26,6 +29,7 @@ public class User {
         this.name = name;
         this.birthday = birthday;
         this.id = idCounter++;
+        this.friends = new HashSet<>();
     }
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
@@ -39,6 +43,15 @@ public class User {
         this.login = login;
         this.name = name;
         this.birthday = birthday;
+        this.friends = new HashSet<>();
+    }
+
+    public void addFriend(Integer id) {
+        this.friends.add(id);
+    }
+
+    public void removeFriend(Integer id) {
+        this.friends.remove(id);
     }
 
     public static void resetIdCounter() {

@@ -1,30 +1,34 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Slf4j
 @RequestMapping("/films")
 public class FilmController {
-    private final Map<Integer, Film> films = new HashMap<>();
+    private final FilmService filmService;
+
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
     @GetMapping
     public List<Film> getAll() {
-        log.info("Текущее количество фильмов: {}", films.size());
-        return new ArrayList<>(films.values());
+        log.info("Текущее количество фильмов: {}", filmService.getAll().size());
+        return new ArrayList<>(filmService.getAll());
     }
 
     @PostMapping
@@ -32,10 +36,7 @@ public class FilmController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        validate(film);
-        films.put(film.getId(), film);
-        log.info("Добавлен фильм: {}", film);
-        return film;
+        return filmService.create(film);
     }
 
     @PutMapping
@@ -43,34 +44,31 @@ public class FilmController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        for (Film f : films.values()) {
-            if (f.getId() == film.getId()) {
-                validate(film);
-                films.put(film.getId(), film);
-                log.info("Обновлен фильм: {}", film);
-                return film;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Фильм с id " + film.getId() + " не найден");
+        return filmService.update(film);
     }
 
-    private static void validate(Film film) {
-        if (film.getName() == null || film.getName().isBlank()) {
-            Film.decrementIdCounter();
-            throw new ValidationException("Название фильма не может быть пустым.");
+    @GetMapping("/{id}")
+    public Film getFilm(@PathVariable("id") Integer id) {
+        Film film = filmService.getFilm(id);
+        if (film == null) {
+            throw new EntityNotFoundException(id, Entity.FILM);
         }
-        if (film.getDescription().length() > 200) {
-            Film.decrementIdCounter();
-            throw new ValidationException("Максимальная длина описания — 200 символов.");
-        }
-        if (film.getReleaseDate().isBefore(LocalDate.parse("1895-12-28"))) {
-            Film.decrementIdCounter();
-            throw new ValidationException("Дата релиза — не раньше 28 декабря 1895 года.");
-        }
-        if (film.getDuration() <= 0) {
-            Film.decrementIdCounter();
-            throw new ValidationException("Продолжительность фильма должна быть положительной.");
-        }
+        return filmService.getFilm(id);
+    }
+
+    @PutMapping("/{id}/like/{userId}")
+    public void setLike(@PathVariable("id") Integer filmId, @PathVariable("userId") Integer userId) {
+        filmService.setLike(filmId, userId);
+    }
+
+    @DeleteMapping("/{id}/like/{userId}")
+    public void deleteLike(@PathVariable("id") Integer filmId, @PathVariable("userId") Integer userId) {
+        filmService.deleteLike(filmId, userId);
+    }
+
+    @GetMapping(value = {"/popular", "/popular?count={count}"})
+    public List<Film> getPopular(@RequestParam(name = "count", required = false) Integer count) {
+        return filmService.getPopular(count);
     }
 
     private static void handleSpringValidation(Errors errors) {

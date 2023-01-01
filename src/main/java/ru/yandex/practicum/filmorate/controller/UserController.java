@@ -1,30 +1,35 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 @RestController
 @Slf4j
 @RequestMapping("/users")
 public class UserController {
-    private final Map<Integer, User> users = new HashMap<>();
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public List<User> getAll() {
-        log.info("Текущее количество пользователей: {}", users.size());
-        return new ArrayList<>(users.values());
+        log.info("Текущее количество пользователей: {}", userService.getAll().size());
+        return new ArrayList<>(userService.getAll());
     }
 
     @PostMapping
@@ -32,14 +37,7 @@ public class UserController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        validate(user);
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-            log.info("Имя установлено как логин: {}", user.getName());
-        }
-        users.put(user.getId(), user);
-        log.info("Добавлен пользователь: {}", user);
-        return user;
+        return userService.create(user);
     }
 
     @PutMapping
@@ -47,30 +45,36 @@ public class UserController {
         if (errors.hasErrors()) {
             handleSpringValidation(errors);
         }
-        for (User u : users.values()) {
-            if (u.getId() == user.getId()) {
-                validate(user);
-                if (user.getName() == null || user.getName().isBlank()) {
-                    user.setName(user.getLogin());
-                    log.info("Имя установлено как логин: {}", user.getName());
-                }
-                users.put(user.getId(), user);
-                log.info("Обновлен пользователь: {}", user);
-                return user;
-            }
-        }
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с id " + user.getId() + " не найден");
+        return userService.update(user);
     }
 
-    private static void validate(User user) {
-        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            User.decrementIdCounter();
-            throw new ValidationException("Логин не может быть пустым или содержать пробелы");
+    @GetMapping("/{id}")
+    public User getUser(@PathVariable("id") Integer id) {
+        User user = userService.getUser(id);
+        if (user == null) {
+            throw new EntityNotFoundException(id, Entity.USER);
         }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            User.decrementIdCounter();
-            throw new ValidationException("Дата рождения не может быть в будущем");
-        }
+        return user;
+    }
+
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        userService.addFriend(userId, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void removeFriend(@PathVariable("id") Integer userId, @PathVariable("friendId") Integer friendId) {
+        userService.removeFriend(userId, friendId);
+    }
+
+    @GetMapping("{id}/friends")
+    public List<User> getFriends(@PathVariable("id") Integer userId) {
+        return userService.getFriends(userId);
+    }
+
+    @GetMapping("{id}/friends/common/{otherId}")
+    public Set<User> getCommonFriends(@PathVariable("id") Integer userId, @PathVariable("otherId") Integer friendId) {
+        return userService.getCommonFriends(userId, friendId);
     }
 
     private static void handleSpringValidation(Errors errors) {
