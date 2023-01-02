@@ -1,6 +1,6 @@
 # java-filmorate
-Template repository for Filmorate project.
+Repository for Filmorate project.
 
-DB Scheme
+# DB Scheme
 
 ![Scheme link](https://github.com/zvrzhina/java-filmorate/blob/main/src/main/resources/scheme.png)
