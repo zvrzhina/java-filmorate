@@ -20,7 +20,7 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
-    private Set<Integer> friends;
+    private Set<Integer> friends; // ToDo replace later to Map<Integer, Boolean> friends = new HashMap<>();
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
     public User(@JsonProperty("email") String email, @JsonProperty("login") String login, @JsonProperty("name") String name, @JsonProperty("birthday") LocalDate birthday) {

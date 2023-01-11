@@ -18,6 +18,8 @@ public class Film {
     private String description;
     private LocalDate releaseDate;
     private long duration;
+    private int ratingId;
+    private Set<Integer> genreId;
 
     private Set<Integer> likes; // Integer is userId
 
