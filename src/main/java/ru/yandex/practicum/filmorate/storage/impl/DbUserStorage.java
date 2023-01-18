@@ -16,7 +16,7 @@ import java.util.*;
 
 @Component("dbUser")
 public class DbUserStorage extends UserStorageImpl implements UserStorage {
-    private final Logger log = LoggerFactory.getLogger(DbFilmStorage.class);
+    private final Logger log = LoggerFactory.getLogger(DbUserStorage.class);
 
     private final JdbcTemplate jdbcTemplate;
 

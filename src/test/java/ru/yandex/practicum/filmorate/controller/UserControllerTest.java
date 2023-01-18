@@ -219,13 +219,13 @@ public class UserControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.put("/users/1/friends/2")).andReturn();
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/2/friends")).andReturn();
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/1/friends")).andReturn();
         String content = result.getResponse().getContentAsString();
         Type listType = new TypeToken<List<User>>() {
         }.getType();
 
         List<User> actual = gson.fromJson(content, listType);
-        Assertions.assertEquals(user1.getId(), actual.get(0).getId());
+        Assertions.assertEquals(user2.getId(), actual.get(0).getId());
     }
 
     @Test
@@ -303,12 +303,12 @@ public class UserControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.put("/users/2/friends/3")).andReturn();
         mockMvc.perform(MockMvcRequestBuilders.put("/users/1/friends/2")).andReturn();
 
-        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/2/friends/common/3")).andReturn();
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/1/friends/common/2")).andReturn();
         String content = result.getResponse().getContentAsString();
         Type listType = new TypeToken<List<User>>() {
         }.getType();
 
         List<User> actual = gson.fromJson(content, listType);
-        Assertions.assertEquals(user1.getId(), actual.get(0).getId());
+        Assertions.assertEquals(user3.getId(), actual.get(0).getId());
     }
 }
