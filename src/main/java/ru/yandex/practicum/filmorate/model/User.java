@@ -7,8 +7,8 @@ import lombok.Data;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 @Data
 public class User {
@@ -20,20 +20,27 @@ public class User {
     private String login;
     private String name;
     private LocalDate birthday;
-    private Set<Integer> friends; // ToDo replace later to Map<Integer, Boolean> friends = new HashMap<>();
+    private Map<Integer, Boolean> friends;
 
-    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-    public User(@JsonProperty("email") String email, @JsonProperty("login") String login, @JsonProperty("name") String name, @JsonProperty("birthday") LocalDate birthday) {
+    public User(String email, String login, String name, LocalDate birthday) {
         this.email = email;
         this.login = login;
         this.name = name;
         this.birthday = birthday;
         this.id = idCounter++;
-        this.friends = new HashSet<>();
+        this.friends = new HashMap<>();
     }
 
     @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-    public User(@JsonProperty("id") int id, @JsonProperty("email") String email, @JsonProperty("login") String login, @JsonProperty("name") String name, @JsonProperty("birthday") LocalDate birthday) {
+    public User(@JsonProperty("email") String email, @JsonProperty("login") String login, @JsonProperty("name") String name, @JsonProperty("birthday") LocalDate birthday, @JsonProperty("friends") Map<Integer, Boolean> friends) {
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+        this.friends = friends;
+    }
+
+    public User(int id, String email, String login, String name, LocalDate birthday) {
         if (id == 0) {
             this.id = idCounter++; // user didn't pass id in json
         } else {
@@ -43,11 +50,24 @@ public class User {
         this.login = login;
         this.name = name;
         this.birthday = birthday;
-        this.friends = new HashSet<>();
+        this.friends = new HashMap<>();
+    }
+
+    public User(int id, String email, String login, String name, LocalDate birthday, Map<Integer, Boolean> friends) {
+        if (id == 0) {
+            this.id = idCounter++; // user didn't pass id in json
+        } else {
+            this.id = id;
+        }
+        this.email = email;
+        this.login = login;
+        this.name = name;
+        this.birthday = birthday;
+        this.friends = friends;
     }
 
     public void addFriend(Integer id) {
-        this.friends.add(id);
+        this.friends.put(id, false);
     }
 
     public void removeFriend(Integer id) {

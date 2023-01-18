@@ -21,14 +21,15 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.impl.InMemoryFilmStorage;
+import ru.yandex.practicum.filmorate.storage.impl.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.utils.gson.DurationDeserializer;
 import ru.yandex.practicum.filmorate.utils.gson.DurationSerializer;
 import ru.yandex.practicum.filmorate.utils.gson.LocalDateDeserializer;
 import ru.yandex.practicum.filmorate.utils.gson.LocalDateSerializer;
 
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
@@ -40,6 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(FilmController.class)
 @ContextConfiguration(classes = {FilmController.class, InMemoryFilmStorage.class, FilmService.class, UserController.class, InMemoryUserStorage.class, UserService.class})
 public class FilmControllerTest {
+    private final String pattern = "yyyy-MM-dd";
+    private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
     @Autowired
     private MockMvc mockMvc;
 

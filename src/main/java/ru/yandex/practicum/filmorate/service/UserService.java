@@ -17,15 +17,16 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    private final UserStorage userStorage;
+    @Autowired
+    private final UserStorage dbUser;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
-        this.userStorage = userStorage;
+    public UserService(UserStorage dbUser) {
+        this.dbUser = dbUser;
     }
 
     public User getUser(Integer id) {
-        return userStorage.getAll()
+        return dbUser.getAll()
                 .stream()
                 .filter(user -> id.equals(user.getId()))
                 .findAny()
@@ -33,15 +34,18 @@ public class UserService {
     }
 
     public List<User> getAll() {
-        return userStorage.getAll();
+        return dbUser.getAll();
     }
 
     public User create(User user) {
-        return userStorage.create(user);
+        return dbUser.create(user);
     }
 
     public User update(User user) {
-        return userStorage.update(user);
+        if (getUser(user.getId()) == null) {
+            throw new EntityNotFoundException(user.getId(), Entity.USER);
+        }
+        return dbUser.update(user);
     }
 
     public void addFriend(Integer userId, Integer friendId) {
@@ -53,7 +57,7 @@ public class UserService {
             throw new EntityNotFoundException(friendId, Entity.USER);
         } else {
             user.addFriend(friendId);
-            friend.addFriend(userId);
+            dbUser.update(user);
         }
         log.info("Пользователь с id = " + userId + " добавил друга с id = " + friendId);
     }
@@ -66,9 +70,9 @@ public class UserService {
         } else if (friend == null) {
             throw new EntityNotFoundException(friendId, Entity.USER);
         } else {
-            if (user.getFriends().contains(friendId)) {
+            if (user.getFriends().keySet().contains(friendId)) {
                 user.removeFriend(friendId);
-                friend.removeFriend(userId);
+                dbUser.update(user);
                 log.info("Пользователь с id = " + userId + " удалил друга с id = " + friendId);
             } else {
                 throw new EntityNotFoundException(userId, Entity.USER);
@@ -82,7 +86,7 @@ public class UserService {
             throw new EntityNotFoundException(userId, Entity.USER);
         } else {
             List<User> friends = new ArrayList<>();
-            for (Integer id : user.getFriends()) {
+            for (Integer id : user.getFriends().keySet()) {
                 friends.add(getUser(id));
             }
             log.info("Список друзей пользователя с id = " + userId + " получен");

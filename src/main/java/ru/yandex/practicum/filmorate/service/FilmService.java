@@ -17,17 +17,19 @@ import java.util.stream.Collectors;
 @Service
 public class FilmService {
 
-    private final FilmStorage filmStorage;
-    private final UserService userService;
+    @Autowired
+    private final FilmStorage dbFilm;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserService userService) {
-        this.filmStorage = filmStorage;
+    private final UserService userService;
+
+    public FilmService(FilmStorage dbFilm, UserService userService) {
+        this.dbFilm = dbFilm;
         this.userService = userService;
     }
 
     public Film getFilm(Integer id) {
-        return filmStorage.getAll()
+        return dbFilm.getAll()
                 .stream()
                 .filter(film -> id.equals(film.getId()))
                 .findAny()
@@ -35,15 +37,18 @@ public class FilmService {
     }
 
     public List<Film> getAll() {
-        return filmStorage.getAll();
+        return dbFilm.getAll();
     }
 
     public Film create(Film film) {
-        return filmStorage.create(film);
+        return dbFilm.create(film);
     }
 
     public Film update(Film film) {
-        return filmStorage.update(film);
+        if (getFilm(film.getId()) == null) {
+            throw new EntityNotFoundException(film.getId(), Entity.FILM);
+        }
+        return dbFilm.update(film);
     }
 
     public void setLike(Integer filmId, Integer userId) {
@@ -55,6 +60,7 @@ public class FilmService {
             throw new EntityNotFoundException(filmId, Entity.FILM);
         } else {
             film.addLike(userId);
+            dbFilm.update(film); // записать в базу лайк
             log.info("Пользователь с id = " + userId + " поставил лайк фильму с id = " + filmId);
         }
     }
@@ -69,6 +75,7 @@ public class FilmService {
         } else {
             if (film.getLikes().contains(userId)) {
                 film.removeLike(userId);
+                dbFilm.update(film); // удалить лайк из базы
                 log.info("Пользователь с id = " + userId + " удалил лайк с фильма с id = " + filmId);
             } else {
                 throw new EntityNotFoundException(userId, Entity.LIKE);
@@ -80,7 +87,7 @@ public class FilmService {
         if (count == null) {
             count = 10; // set default as 10
         }
-        List<Film> result = filmStorage.getAll()
+        List<Film> result = dbFilm.getAll()
                 .stream()
                 .sorted(Comparator.comparing(Film::getLikesAmount).reversed())
                 .limit(count)
