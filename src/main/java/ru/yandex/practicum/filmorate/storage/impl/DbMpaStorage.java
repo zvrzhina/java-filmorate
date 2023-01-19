@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
@@ -12,9 +11,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @Component
 public class DbMpaStorage implements MpaStorage {
-    private final Logger log = LoggerFactory.getLogger(DbFilmStorage.class);
     private final JdbcTemplate jdbcTemplate;
 
     public DbMpaStorage(JdbcTemplate jdbcTemplate) {

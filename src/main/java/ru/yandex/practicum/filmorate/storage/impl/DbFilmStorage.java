@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -16,10 +15,9 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.*;
 
+@Slf4j
 @Component("dbFilm")
 public class DbFilmStorage extends FilmStorageImpl implements FilmStorage {
-
-    private final Logger log = LoggerFactory.getLogger(DbFilmStorage.class);
 
     private final JdbcTemplate jdbcTemplate;
 

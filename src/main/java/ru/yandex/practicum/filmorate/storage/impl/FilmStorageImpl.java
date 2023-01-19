@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Component
 public class FilmStorageImpl {
-    protected static void validate(Film film) {
+    public static void validate(Film film) {
         if (film.getName() == null || film.getName().isBlank()) {
             Film.decrementIdCounter();
             throw new ValidationException("Название фильма не может быть пустым.");

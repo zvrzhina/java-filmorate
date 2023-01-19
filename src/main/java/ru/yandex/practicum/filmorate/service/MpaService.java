@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
@@ -20,11 +22,15 @@ public class MpaService {
     }
 
     public Mpa getMpa(Integer id) {
-        return mpaStorage.getAll()
+        Mpa mpa = mpaStorage.getAll()
                 .stream()
-                .filter(mpa -> id.equals(mpa.getId()))
+                .filter(m -> id.equals(m.getId()))
                 .findAny()
                 .orElse(null);
+        if (mpa == null) {
+            throw new EntityNotFoundException(id, Entity.MPA);
+        }
+        return mpa;
     }
 
     public List<Mpa> getAll() {

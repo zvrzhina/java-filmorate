@@ -8,7 +8,7 @@ import java.time.LocalDate;
 
 @Component
 public class UserStorageImpl {
-    protected static void validate(User user) {
+    public static void validate(User user) {
         if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
             User.decrementIdCounter();
             throw new ValidationException("Логин не может быть пустым или содержать пробелы");

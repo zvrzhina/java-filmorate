@@ -3,6 +3,8 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.storage.GenreStorage;
 
@@ -20,11 +22,15 @@ public class GenreService {
     }
 
     public Genre getGenre(Integer id) {
-        return genreStorage.getAll()
+        Genre genre = genreStorage.getAll()
                 .stream()
-                .filter(genre -> id.equals(genre.getId()))
+                .filter(g -> id.equals(g.getId()))
                 .findAny()
                 .orElse(null);
+        if (genre == null) {
+            throw new EntityNotFoundException(id, Entity.GENRE);
+        }
+        return genre;
     }
 
     public List<Genre> getAll() {

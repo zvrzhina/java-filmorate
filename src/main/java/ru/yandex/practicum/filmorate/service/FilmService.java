@@ -16,13 +16,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FilmService {
-
-    @Autowired
     private final FilmStorage dbFilm;
-
-    @Autowired
     private final UserService userService;
 
+    @Autowired
     public FilmService(FilmStorage dbFilm, UserService userService) {
         this.dbFilm = dbFilm;
         this.userService = userService;

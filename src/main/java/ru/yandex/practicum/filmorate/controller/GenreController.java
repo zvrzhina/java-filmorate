@@ -6,8 +6,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
-import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.service.GenreService;
 
@@ -33,10 +31,6 @@ public class GenreController {
 
     @GetMapping("/{id}")
     public Genre getGenre(@PathVariable("id") Integer id) {
-        Genre genre = genreService.getGenre(id);
-        if (genre == null) {
-            throw new EntityNotFoundException(id, Entity.GENRE);
-        }
         return genreService.getGenre(id);
     }
 }

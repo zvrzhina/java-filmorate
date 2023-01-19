@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,9 +13,9 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.util.*;
 
+@Slf4j
 @Component("dbUser")
 public class DbUserStorage extends UserStorageImpl implements UserStorage {
-    private final Logger log = LoggerFactory.getLogger(DbUserStorage.class);
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -102,13 +101,24 @@ public class DbUserStorage extends UserStorageImpl implements UserStorage {
                 user.getId());
         String friendsQuery = "MERGE INTO FRIEND(USER_ID, FRIEND_ID, IS_ACCEPTED) KEY(USER_ID, FRIEND_ID) " +
                 "VALUES (?, ?, ?)";
-        if (user.getFriends() != null) {
+        if (user.getFriends() != null && !user.getFriends().isEmpty()) {
+            List<Integer> friendIds = new ArrayList<>();
+            List<Boolean> statuses = new ArrayList<>();
             for (Map.Entry<Integer, Boolean> entry : user.getFriends().entrySet()) {
-                jdbcTemplate.update(friendsQuery,
-                        user.getId(),
-                        entry.getKey(),
-                        entry.getValue());
+                friendIds.add(entry.getKey());
+                statuses.add(entry.getValue());
             }
+            jdbcTemplate.update(connection -> {
+                PreparedStatement smth = connection.prepareStatement(friendsQuery);
+                for (int i = 0; i < friendIds.size(); i++) {
+                    smth.setInt(1, user.getId());
+                    smth.setInt(2, friendIds.get(i));
+                    smth.setBoolean(3, statuses.get(i));
+                    smth.addBatch();
+                }
+                smth.executeBatch();
+                return smth;
+            });
         }
     }
 
