@@ -1,14 +1,15 @@
-package ru.yandex.practicum.filmorate.storage;
+package ru.yandex.practicum.filmorate.storage.impl;
 
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
-import ru.yandex.practicum.filmorate.exception.ValidationException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.storage.UserStorage;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,12 +17,20 @@ import java.util.Map;
 
 @Slf4j
 @NoArgsConstructor
-@Component
-public class InMemoryUserStorage implements UserStorage {
+@Component("inMemoryUser")
+public class InMemoryUserStorage extends UserStorageImpl implements UserStorage {
     private final Map<Integer, User> users = new HashMap<>();
 
     public List<User> getAll() {
         return new ArrayList<>(users.values());
+    }
+
+    @Override
+    public User getUser(Integer id) {
+        if (!users.containsKey(id)) {
+            throw new EntityNotFoundException(id, Entity.USER);
+        }
+        return users.get(id);
     }
 
     public User create(User user) {
@@ -50,17 +59,5 @@ public class InMemoryUserStorage implements UserStorage {
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь с id " + user.getId() + " не найден");
     }
-
-    private static void validate(User user) {
-        if (user.getLogin() == null || user.getLogin().isBlank() || user.getLogin().contains(" ")) {
-            User.decrementIdCounter();
-            throw new ValidationException("Логин не может быть пустым или содержать пробелы");
-        }
-        if (user.getBirthday().isAfter(LocalDate.now())) {
-            User.decrementIdCounter();
-            throw new ValidationException("Дата рождения не может быть в будущем");
-        }
-    }
-
 
 }

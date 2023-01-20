@@ -34,6 +34,14 @@ public class ErrorHandler {
                 msg = String.format("Друг c id \"%s\" не найден", e.getEntityId());
                 log.info(msg);
                 return new ErrorResponse(msg);
+            case GENRE:
+                msg = String.format("Жанр c id \"%s\" не найден", e.getEntityId());
+                log.info(msg);
+                return new ErrorResponse(msg);
+            case MPA:
+                msg = String.format("Рейтинг c id \"%s\" не найден", e.getEntityId());
+                log.info(msg);
+                return new ErrorResponse(msg);
             default:
                 msg = String.format("Сущность c id \"%s\" не найдена", e.getEntityId());
                 log.info(msg);

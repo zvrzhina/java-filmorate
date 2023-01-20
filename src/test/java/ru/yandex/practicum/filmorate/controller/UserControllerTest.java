@@ -19,7 +19,7 @@ import org.springframework.web.util.NestedServletException;
 import ru.yandex.practicum.filmorate.exception.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
+import ru.yandex.practicum.filmorate.storage.impl.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.utils.gson.LocalDateDeserializer;
 import ru.yandex.practicum.filmorate.utils.gson.LocalDateSerializer;
 
@@ -301,6 +301,7 @@ public class UserControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.put("/users/1/friends/3")).andReturn();
         mockMvc.perform(MockMvcRequestBuilders.put("/users/2/friends/3")).andReturn();
+        mockMvc.perform(MockMvcRequestBuilders.put("/users/1/friends/2")).andReturn();
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/users/1/friends/common/2")).andReturn();
         String content = result.getResponse().getContentAsString();

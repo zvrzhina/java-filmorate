@@ -4,5 +4,7 @@ public enum Entity {
     FILM,
     FRIEND,
     USER,
-    LIKE;
+    LIKE,
+    GENRE,
+    MPA;
 }
