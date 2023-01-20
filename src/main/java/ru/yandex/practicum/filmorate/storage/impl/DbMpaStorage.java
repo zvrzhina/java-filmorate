@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Mpa;
 import ru.yandex.practicum.filmorate.storage.MpaStorage;
 
@@ -41,5 +43,19 @@ public class DbMpaStorage implements MpaStorage {
             while (mpaRows.next());
         }
         return mpas;
+    }
+
+    @Override
+    public Mpa getMpa(Integer id) {
+        SqlRowSet mpaRows = jdbcTemplate.queryForRowSet("SELECT * FROM RATING where RATING_ID = ?", id);
+        if (mpaRows.next()) {
+            Mpa mpa = new Mpa(
+                    mpaRows.getInt("RATING_ID"),
+                    mpaRows.getString("NAME"));
+            log.info("Найден рейтинг: " + mpaRows.getString("NAME"));
+            return mpa;
+        } else {
+            throw new EntityNotFoundException(id, Entity.MPA);
+        }
     }
 }

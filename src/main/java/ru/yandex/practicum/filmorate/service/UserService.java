@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    @Autowired
     private final UserStorage dbUser;
 
     @Autowired
@@ -26,13 +25,8 @@ public class UserService {
     }
 
     public User getUser(Integer id) {
-        return dbUser.getAll()
-                .stream()
-                .filter(user -> id.equals(user.getId()))
-                .findAny()
-                .orElse(null);
+        return dbUser.getUser(id);
     }
-
     public List<User> getAll() {
         return dbUser.getAll();
     }

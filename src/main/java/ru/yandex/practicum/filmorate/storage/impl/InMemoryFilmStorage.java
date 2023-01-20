@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
 
@@ -19,6 +21,14 @@ public class InMemoryFilmStorage extends FilmStorageImpl implements FilmStorage 
 
     public List<Film> getAll() {
         return new ArrayList<>(films.values());
+    }
+
+    @Override
+    public Film getFilm(Integer id) {
+        if (!films.containsKey(id)) {
+            throw new EntityNotFoundException(id, Entity.FILM);
+        }
+        return films.get(id);
     }
 
     public Film create(Film film) {

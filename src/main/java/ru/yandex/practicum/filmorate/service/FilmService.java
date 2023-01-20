@@ -26,11 +26,7 @@ public class FilmService {
     }
 
     public Film getFilm(Integer id) {
-        return dbFilm.getAll()
-                .stream()
-                .filter(film -> id.equals(film.getId()))
-                .findAny()
-                .orElse(null);
+        return dbFilm.getFilm(id);
     }
 
     public List<Film> getAll() {

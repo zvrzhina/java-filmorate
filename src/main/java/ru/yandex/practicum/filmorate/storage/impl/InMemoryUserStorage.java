@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -21,6 +23,14 @@ public class InMemoryUserStorage extends UserStorageImpl implements UserStorage 
 
     public List<User> getAll() {
         return new ArrayList<>(users.values());
+    }
+
+    @Override
+    public User getUser(Integer id) {
+        if (!users.containsKey(id)) {
+            throw new EntityNotFoundException(id, Entity.USER);
+        }
+        return users.get(id);
     }
 
     public User create(User user) {

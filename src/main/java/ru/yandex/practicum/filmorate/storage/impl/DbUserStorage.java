@@ -6,6 +6,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.exception.EntityNotFoundException;
+import ru.yandex.practicum.filmorate.model.Entity;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
@@ -34,25 +36,34 @@ public class DbUserStorage extends UserStorageImpl implements UserStorage {
             return Collections.emptyList();
         } else {
             do {
-                SqlRowSet friendsSet = jdbcTemplate.queryForRowSet("SELECT FRIEND_ID, IS_ACCEPTED FROM FRIEND WHERE USER_ID = ?", userRows.getInt("USER_ID"));
-                Map<Integer, Boolean> friends = new HashMap<>();
-                while (friendsSet.next()) {
-                    friends.put(friendsSet.getInt("FRIEND_ID"), friendsSet.getBoolean("IS_ACCEPTED"));
-                }
-                User user = new User(
-                        userRows.getInt("USER_ID"),
-                        userRows.getString("EMAIL"),
-                        userRows.getString("LOGIN"),
-                        userRows.getString("NAME"),
-                        userRows.getDate("BIRTHDAY").toLocalDate(),
-                        friends);
-
-                log.info("Найден пользователь: {} {}", user.getId(), user.getName());
-                users.add(user);
+                users.add(getUser(userRows.getInt("USER_ID")));
             }
             while (userRows.next());
         }
         return users;
+    }
+
+
+    public User getUser(Integer id) {
+        SqlRowSet userRows = jdbcTemplate.queryForRowSet("SELECT * FROM USERS where USER_ID = ?", id);
+        if (userRows.next()) {
+            SqlRowSet friendsSet = jdbcTemplate.queryForRowSet("SELECT FRIEND_ID, IS_ACCEPTED FROM FRIEND WHERE USER_ID = ?", id);
+            Map<Integer, Boolean> friends = new HashMap<>();
+            while (friendsSet.next()) {
+                friends.put(friendsSet.getInt("FRIEND_ID"), friendsSet.getBoolean("IS_ACCEPTED"));
+            }
+            User user = new User(
+                    userRows.getInt("USER_ID"),
+                    userRows.getString("EMAIL"),
+                    userRows.getString("LOGIN"),
+                    userRows.getString("NAME"),
+                    userRows.getDate("BIRTHDAY").toLocalDate(),
+                    friends);
+            log.info("Найден пользователь: {} {}", user.getId(), user.getName());
+            return user;
+        } else {
+            throw new EntityNotFoundException(id, Entity.USER);
+        }
     }
 
     @Override
